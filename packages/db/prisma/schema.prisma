@@ -20,4 +20,22 @@ model User{
   otp String
 }
 
+model Card{
+  cardId String @id @default(cuid())
+  cardName String
+  cardImage String
+  slots Slot[]
+}
+
+model Slot{
+  slotId String @id @default(cuid())
+  cardId String
+  card Card  @relation(fields: [cardId], references: [cardId])
+  start Int
+  end Int
+  total Int
+  remaining Int
+  isActive Boolean @default(false)
+}
+
 
