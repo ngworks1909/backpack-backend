@@ -9,22 +9,6 @@ router.get('/fetchslots/:cardId', async(req, res) => {
         if(!cardId){
             return res.status(400).json({success: false, message: "Invalid cardId"})
         }
-        // const slots = await prisma.slot.findMany({
-        //     where: {
-        //         cardId
-        //     },
-        //     orderBy: [
-        //         { isActive: "desc" }, // Active slot first
-        //         { start: "asc" } // Then order by start time
-        //     ],
-        //     select: {
-        //        slotId: true,
-        //        start: true,
-        //        end: true,
-        //        total: true,
-        //        remaining: true
-        //     }
-        // })
         const slots = await prisma.card.findUnique({
             where:{
                 cardId
@@ -42,7 +26,11 @@ router.get('/fetchslots/:cardId', async(req, res) => {
                        start: true,
                        end: true,
                        total: true,
-                       remaining: true
+                       _count: {
+                           select: {
+                               purchases: true
+                           }        
+                       }
                     }
                 }
             }

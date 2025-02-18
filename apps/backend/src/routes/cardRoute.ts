@@ -18,7 +18,11 @@ router.get("/fetchcards", async(req, res) =>{
                     },
                     select: {
                         total: true,
-                        remaining: true
+                        _count: {
+                            select: {
+                                purchases: true
+                            }
+                        }
                     }
                 }
             }

@@ -18,6 +18,7 @@ model User{
   username String
   mobile String @unique
   otp String
+  purchases Purchase[]
 }
 
 model Card{
@@ -34,8 +35,15 @@ model Slot{
   start Int
   end Int
   total Int
-  remaining Int
   isActive Boolean @default(false)
+  purchases Purchase[]
 }
 
+model Purchase {
+  purchaseId String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [userId])
+  slotId String
+  slot Slot @relation(fields: [slotId], references: [slotId])
+}
 
