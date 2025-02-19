@@ -19,7 +19,14 @@ class SlotManager {
                 select: {
                     _count: {
                         select: {
-                            purchases: true
+                            purchases: {
+                                where: {
+                                    OR: [
+                                        {status: "Pending"},
+                                        {status: "Success"}
+                                    ]
+                                }
+                            }
                         }
                     },
                     total: true
@@ -49,11 +56,30 @@ class SlotManager {
         }
     }
 
+    async approveSlot(purchaseId: string){
+        try {
+            await prisma.purchase.update({
+                where: {
+                    purchaseId,
+                },
+                data: {
+                    status: "Success"
+                }
+            })
+            return true
+        } catch (error) {
+            return false
+        }
+    }
+
     async releaseSlot(purchaseId: string){
         try {
-            await prisma.purchase.delete({
+            await prisma.purchase.update({
                 where: {
                     purchaseId
+                },
+                data: {
+                    status: "Failed"
                 }
             });
             return true

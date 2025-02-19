@@ -2,13 +2,14 @@
 import { hold_slot, slot_collected } from "../../message/message";
 import { slotValidator } from "../../zod/slotValidator";
 import { slotManager } from "../purchase/SlotManager";
+import { socketManager } from "../socket/SocketManager";
 import { User } from "./User";
 
 class UserManager {
     private static instance: UserManager
-    private readonly onlineUsers: Map<string, User>
+    private readonly _onlineUsers: Map<string, User>
     constructor(){
-        this.onlineUsers = new Map()
+        this._onlineUsers = new Map()
     }
     static getInstance(){
         if(UserManager.instance){
@@ -16,6 +17,10 @@ class UserManager {
         }
         UserManager.instance = new UserManager();
         return UserManager.instance;
+    }
+
+    get onlineUsers(){
+        return this._onlineUsers
     }
 
     addUser(user: User) {
@@ -35,19 +40,16 @@ class UserManager {
 
     private addListener(user: User){
         user.socket.on(hold_slot, async(data) => {
-            console.log("Holding slot");
             const isValidSlot = slotValidator.safeParse(data);
             if(!isValidSlot.success) {
                 console.log("Invalid slot");
                 return;
             }
             const slotId = isValidSlot.data;
-            console.log("This is slotId: ", slotId);
             const {success, message} = await slotManager.holdSlot(slotId, user.userId)
-            console.log(`${success} ${message}`)
             if(success){
-                const data = JSON.stringify({message})
-                user.socket.emit(slot_collected, data);
+                const data = JSON.stringify({message, userId: user.userId})
+                socketManager.broadcast(slot_collected, data);
             }
         })
     }

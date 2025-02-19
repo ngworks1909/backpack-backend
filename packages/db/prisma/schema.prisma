@@ -19,6 +19,7 @@ model User{
   mobile String @unique
   otp String
   purchases Purchase[]
+  payments Payment[]
 }
 
 model Card{
@@ -45,5 +46,30 @@ model Purchase {
   user User @relation(fields: [userId], references: [userId])
   slotId String
   slot Slot @relation(fields: [slotId], references: [slotId])
+  status Status @default(Pending)
+  createdOn DateTime @default(now())
+  payment Payment?
+}
+
+
+model Payment {
+  transactionId String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [userId])
+  orderId       String        @unique
+  paymentId     String?
+  signature     String?
+  amount        Float
+  status        Status        @default(Pending)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  purchaseId    String        @unique
+  purchase      Purchase      @relation(fields: [purchaseId], references: [purchaseId], onDelete: Cascade)
+}
+
+enum Status {
+  Pending
+  Success
+  Failed
 }
 
