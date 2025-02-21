@@ -13,6 +13,7 @@ const razorpay = new Razorpay({
 
 const router = Router();
 
+
 router.post('/createRazrPayment', verifySession, async(req: UserRequest, res) => {
     try {
         const userId = req.userId!
@@ -57,6 +58,81 @@ router.post('/createRazrPayment', verifySession, async(req: UserRequest, res) =>
         return res.status(500).json({success: false, message: "Internal server error"})
     }
 });
+
+
+router.post('/createWalletPay', verifySession, async(req: UserRequest, res) => {
+    try {
+        const userId = req.userId!
+        const user = await prisma.user.findUnique({
+            where: {
+                userId
+            }
+        });
+
+        if(!user){
+            return res.status(400).json({success: false, message: "User not found"})
+        };
+
+        const isValidCreation = createPaymentSchema.safeParse(req.body);
+        if(!isValidCreation.success){
+            return res.status(400).json({success: false, message: "Invalid request"})    
+        }    
+
+        const { purchaseId, amount } = isValidCreation.data;
+        
+        const wallet = await prisma.wallet.findUnique({
+            where: {
+                userId
+            },
+            select: {
+                walletId: true,
+                amount: true
+            }
+        });
+
+        if(!wallet){
+            return res.status(400).json({success: false, message: "Wallet not found"})
+        }
+
+        if(wallet.amount < amount){
+            return res.status(400).json({success: false, message: "Insufficient balance"})
+        }
+
+        try {
+            await prisma.$transaction(async (tx) => {
+                await tx.wallet.update({
+                    where: {
+                        walletId: wallet.walletId
+                    },
+                    data: {
+                        amount: {
+                            decrement: amount
+                        }
+                    }
+                })
+                await tx.payment.create({
+                    data: {
+                        purchaseId,
+                        userId,
+                        amount,
+                        paymentType: "Wallet",
+                        status: "Success"
+                    }
+                })
+            })
+            return res.status(200).json({success: true, message: "Payment successful"})
+        } catch (error) {
+            await prisma.purchase.delete({
+                where: {
+                    purchaseId
+                }
+            });
+            return res.status(400).json({success: false, message: "Payment failed"})
+        }  
+    } catch (error) {
+        return res.status(500).json({success: false, message: "Internal server error"})
+    }
+})
 
 
 export default router
