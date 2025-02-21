@@ -33,4 +33,9 @@ router.get("/fetchcards", async(req, res) =>{
     }
 })
 
+
+
+
 export default router
+// netstat -ano | findstr :3000
+// taskkill /PID  20032 /F     

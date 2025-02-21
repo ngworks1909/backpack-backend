@@ -1,5 +1,5 @@
 
-import { hold_slot, slot_collected } from "../../message/message";
+import { decrement_slot, hold_slot, slot_collected, slot_failed } from "../../message/message";
 import { slotValidator } from "../../zod/slotValidator";
 import { slotManager } from "../purchase/SlotManager";
 import { socketManager } from "../socket/SocketManager";
@@ -46,10 +46,13 @@ class UserManager {
                 return;
             }
             const slotId = isValidSlot.data;
-            const {success, message} = await slotManager.holdSlot(slotId, user.userId)
+            const {success, message, purchaseId, cardId} = await slotManager.holdSlot(slotId, user.userId)
             if(success){
-                const data = JSON.stringify({message, userId: user.userId})
-                socketManager.broadcast(slot_collected, data);
+                user.socket.emit(slot_collected, purchaseId)
+                socketManager.broadcast(decrement_slot, cardId??"");
+            }
+            else{
+                user.socket.emit(slot_failed, message)
             }
         })
     }

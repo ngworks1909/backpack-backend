@@ -5,16 +5,15 @@ import { prisma } from "../db/client";
 import { createPaymentSchema } from "../zod/paymentSchema";
 import crypto from 'crypto';
 
-const key_secret = process.env.RAZORPAY_KEY_SECRET ?? ""
 
 const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID ?? "",
-    key_secret
+    key_id: process.env.RAZORPAY_KEY_ID ?? "key",
+    key_secret: process.env.RAZORPAY_KEY_SECRET ?? "secret"
 });
 
 const router = Router();
 
-router.post('/createPayment', verifySession, async(req: UserRequest, res) => {
+router.post('/createRazrPayment', verifySession, async(req: UserRequest, res) => {
     try {
         const userId = req.userId!
         const user = await prisma.user.findUnique({
@@ -49,7 +48,7 @@ router.post('/createPayment', verifySession, async(req: UserRequest, res) => {
                 userId,
                 orderId: order.id,
                 amount,
-                paymentId: order.id,
+                paymentType: "Razorpay"
             }
         })
 
@@ -58,6 +57,11 @@ router.post('/createPayment', verifySession, async(req: UserRequest, res) => {
         return res.status(500).json({success: false, message: "Internal server error"})
     }
 });
+
+
+export default router
+
+
 
 
 

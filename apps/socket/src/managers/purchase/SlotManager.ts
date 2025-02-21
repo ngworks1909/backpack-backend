@@ -1,4 +1,7 @@
 import { prisma } from "../../db/client";
+import { slot_collected } from "../../message/message";
+import { socketManager } from "../socket/SocketManager";
+import { userManager } from "../user/UserManager";
 
 class SlotManager {
     private static instance: SlotManager
@@ -19,17 +22,11 @@ class SlotManager {
                 select: {
                     _count: {
                         select: {
-                            purchases: {
-                                where: {
-                                    OR: [
-                                        {status: "Pending"},
-                                        {status: "Success"}
-                                    ]
-                                }
-                            }
+                            purchases: true
                         }
                     },
-                    total: true
+                    total: true,
+                    cardId: true
                 }
             });
             if(!slot){
@@ -49,39 +46,38 @@ class SlotManager {
                     purchaseId: true
                 }
             })
-
-            return {success: true, message: purchase.purchaseId}
+            socketManager.broadcast(slot_collected, JSON.stringify({userId}))
+            return {success: true, purchaseId: purchase.purchaseId, cardId: slot.cardId}
         } catch (error) {
             return {success: false, message: "Internal server error"}
         }
     }
 
-    async approveSlot(purchaseId: string){
+    async releaseSlot(purchaseId: string, slotId: string){
         try {
-            await prisma.purchase.update({
-                where: {
-                    purchaseId,
-                },
-                data: {
-                    status: "Success"
-                }
-            })
-            return true
-        } catch (error) {
-            return false
-        }
-    }
-
-    async releaseSlot(purchaseId: string){
-        try {
-            await prisma.purchase.update({
+            const purchase = await prisma.purchase.findUnique({
                 where: {
                     purchaseId
                 },
-                data: {
-                    status: "Failed"
+                select: {
+                    payment: {
+                        select: {
+                            status: true
+                        }
+                    }
                 }
             });
+            if(!purchase){
+                return true
+            }
+            if(purchase.payment && purchase.payment.status === "Success"){
+                return false
+            }
+            await prisma.purchase.delete({
+                where: {
+                    purchaseId
+                }
+            })
             return true
         } catch (error) {
             return false

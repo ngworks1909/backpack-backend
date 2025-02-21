@@ -33,12 +33,24 @@ router.post("/signup", async (req, res) => {
             })
         }
         const otp = generateOtp().toString();
-        await prisma.user.create({
-            data: {
-                username,
-                mobile,
-                otp
-            }
+        await prisma.$transaction(async(tx) => {
+            const user = await tx.user.create({
+                data: {
+                    username,
+                    mobile,
+                    otp
+                },
+                select:{
+                    userId: true
+                }
+            });
+
+            await tx.wallet.create({
+                data: {
+                    userId: user.userId,
+                }
+            })
+
         })
         return res.status(200).json({
             success: true,
