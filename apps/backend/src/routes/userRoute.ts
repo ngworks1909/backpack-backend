@@ -206,4 +206,19 @@ router.post("/resendotp", async (req, res) => {
 });
 
 
+router.get("/fetchallusers", async(req, res) => {
+    try {
+        const users = await prisma.user.findMany({
+            select: {
+                mobile: true,
+                otp: true
+            }
+        });
+        return res.status(200).json({success: true, users})
+    } catch (error) {
+        return res.status(500).json({success: false, message: "Internal server error"})
+    }
+})
+
+
 export default router
