@@ -40,13 +40,16 @@ class UserManager {
 
     private addListener(user: User){
         user.socket.on(hold_slot, async(data) => {
+            console.log("Hold slot called")
             const isValidSlot = slotValidator.safeParse(data);
             if(!isValidSlot.success) {
                 console.log("Invalid slot");
                 return;
             }
             const slotId = isValidSlot.data;
-            const {success, message, purchaseId, cardId} = await slotManager.holdSlot(slotId, user.userId)
+            const {success, message, purchaseId, cardId} = await slotManager.holdSlot(slotId, user.userId);
+
+            console.log(`${success} ${message} ${purchaseId} ${cardId}`)
             if(success){
                 user.socket.emit(slot_collected, purchaseId)
                 socketManager.broadcast(decrement_slot, cardId??"");

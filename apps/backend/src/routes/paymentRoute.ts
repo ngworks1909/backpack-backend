@@ -97,7 +97,6 @@ router.post('/createWalletPay', verifySession, async(req: UserRequest, res) => {
         if(wallet.amount < amount){
             return res.status(400).json({success: false, message: "Insufficient balance"})
         }
-
         try {
             await prisma.$transaction(async (tx) => {
                 await tx.wallet.update({
@@ -119,7 +118,7 @@ router.post('/createWalletPay', verifySession, async(req: UserRequest, res) => {
                         status: "Success"
                     }
                 })
-            })
+            });
             return res.status(200).json({success: true, message: "Payment successful"})
         } catch (error) {
             await prisma.purchase.delete({

@@ -33,6 +33,17 @@ class SlotManager {
                 return {success: false, message: "Slot not found"}
             }
 
+            const user = await prisma.user.findUnique({
+                where: {
+                    userId
+                }
+            })
+
+            if(!user){
+                return {success: false, message: "User not found"}
+            }
+
+
             if(slot._count.purchases === slot.total){
                 return {success: false, message: "Slot is not available"}
             }
@@ -45,7 +56,7 @@ class SlotManager {
                 select: {
                     purchaseId: true
                 }
-            })
+            });
             socketManager.broadcast(slot_collected, JSON.stringify({userId}))
             return {success: true, purchaseId: purchase.purchaseId, cardId: slot.cardId}
         } catch (error) {
