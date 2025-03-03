@@ -126,7 +126,8 @@ router.post("/verifyotp", async (req, res) => {
             },
             select: {
                 otp: true,
-                userId: true
+                userId: true,
+                username: true
             }
         });
         if(!user){
@@ -143,7 +144,8 @@ router.post("/verifyotp", async (req, res) => {
         }
         const data = {
             user: {
-                userId: user.userId
+                userId: user.userId,
+                username: user.username
             }
         }
         const authToken = jwt.sign(data, `${process.env.JWT_SECRET ?? 'secret'}`);

@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import dotenv from 'dotenv'
 import { extractJwtToken } from './middlewares/auth/auth';
 import { userManager } from './managers/user/UserManager';
+import { updateActiveSlots } from './crons/crons';
 
 dotenv.config()
 const app = express();
@@ -25,7 +26,6 @@ io.on('connection', (socket) => {
         userManager.addUser(user);
     }
     socket.on('disconnect', () => {
-        console.log("disconnected");
         if(user){
             userManager.removeUser(user.userId);
         }
@@ -33,6 +33,7 @@ io.on('connection', (socket) => {
 })
 
 
-server.listen(process.env.PORT || 8080, () => {
+server.listen(process.env.PORT || 8080, async() => {
+    await updateActiveSlots();
     console.log(`Websocket server is running on port ${process.env.PORT || 8080}`)
 })

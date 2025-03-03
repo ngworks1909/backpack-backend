@@ -30,7 +30,6 @@ class UserManager {
     }
 
     removeUser(userId: string) {
-        console.log("Removing user with userId: ", userId);
         this.onlineUsers.delete(userId)
     }
 
