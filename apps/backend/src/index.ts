@@ -6,6 +6,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import walletRouter from './routes/walletRoute'
 import paymentRouter from './routes/paymentRoute'
+import adminRouter from './routes/adminRoute'
 
 
 dotenv.config()
@@ -20,6 +21,7 @@ app.use('/api/cards', cardRouter);
 app.use('/api/slots', slotRouter);
 app.use('/api/wallet', walletRouter);
 app.use('/api/payment', paymentRouter);
+app.use('/api/admin', adminRouter);
 
 
 
